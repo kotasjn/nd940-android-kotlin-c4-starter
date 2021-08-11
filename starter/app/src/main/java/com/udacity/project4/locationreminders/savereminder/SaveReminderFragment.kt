@@ -11,14 +11,19 @@ import androidx.databinding.DataBindingUtil
 import com.google.android.gms.location.Geofence
 import com.google.android.gms.location.GeofencingClient
 import com.google.android.gms.location.GeofencingRequest
+import com.google.android.gms.location.LocationServices
+import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentSaveReminderBinding
 import com.udacity.project4.locationreminders.geofence.GeofenceBroadcastReceiver
 import com.udacity.project4.locationreminders.reminderslist.ReminderDataItem
+import com.udacity.project4.utils.foregroundAndBackgroundLocationPermissionApproved
+import com.udacity.project4.utils.requestForegroundAndBackgroundLocationPermissions
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.android.ext.android.inject
+import java.util.concurrent.TimeUnit
 
 class SaveReminderFragment : BaseFragment() {
     //Get the view model this time as a single to be shared with the another fragment
@@ -44,6 +49,8 @@ class SaveReminderFragment : BaseFragment() {
         setDisplayHomeAsUpEnabled(true)
 
         binding.viewModel = _viewModel
+
+        geofencingClient = LocationServices.getGeofencingClient(requireActivity())
 
         return binding.root
     }
@@ -93,6 +100,7 @@ class SaveReminderFragment : BaseFragment() {
                 GEOFENCE_RADIUS_IN_METERS
             )
             .setTransitionTypes(Geofence.GEOFENCE_TRANSITION_ENTER)
+            .setExpirationDuration(TimeUnit.DAYS.toMillis(1))
             .build()
 
         // Build the geofence request
@@ -101,12 +109,19 @@ class SaveReminderFragment : BaseFragment() {
             .addGeofence(geofence)
             .build()
 
-        // Finally add geofences to our database
-        geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)
-            .addOnCompleteListener {
-                _viewModel.saveReminder(reminder)
-            }
-
+        if (foregroundAndBackgroundLocationPermissionApproved()) {
+            geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)
+                .addOnCompleteListener {
+                    _viewModel.saveReminder(reminder)
+                }
+        } else {
+            Snackbar.make(
+                binding.root,
+                R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
+            ).setAction(android.R.string.ok) {
+                requestForegroundAndBackgroundLocationPermissions()
+            }.show()
+        }
     }
 
     companion object {
