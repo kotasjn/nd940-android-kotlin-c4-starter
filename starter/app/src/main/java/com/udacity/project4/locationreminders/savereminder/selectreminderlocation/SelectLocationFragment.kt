@@ -160,6 +160,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
         locationSettingsResponseTask.addOnSuccessListener {
             map.isMyLocationEnabled = true
+            map.uiSettings.isMyLocationButtonEnabled = true
             getDeviceLocation()
         }
     }
@@ -194,7 +195,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                             CameraUpdateFactory
                                 .newLatLngZoom(defaultLocation, DEFAULT_ZOOM.toFloat())
                         )
-                        map.uiSettings.isMyLocationButtonEnabled = false
                     }
                 }
             } else {
@@ -202,7 +202,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     CameraUpdateFactory
                         .newLatLngZoom(defaultLocation, DEFAULT_ZOOM.toFloat())
                 )
-                map.uiSettings.isMyLocationButtonEnabled = false
             }
         } catch (e: SecurityException) {
             Log.e("Exception: %s", e.message, e)
