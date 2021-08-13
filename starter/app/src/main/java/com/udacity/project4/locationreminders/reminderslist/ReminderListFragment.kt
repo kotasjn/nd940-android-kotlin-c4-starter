@@ -10,9 +10,7 @@ import com.udacity.project4.authentication.AuthenticationActivity
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
 import com.udacity.project4.databinding.FragmentRemindersBinding
-import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
-import com.udacity.project4.utils.setTitle
-import com.udacity.project4.utils.setup
+import com.udacity.project4.utils.*
 import org.koin.androidx.viewmodel.ext.android.viewModel
 
 class ReminderListFragment : BaseFragment() {
@@ -45,6 +43,10 @@ class ReminderListFragment : BaseFragment() {
         setupRecyclerView()
         binding.addReminderFAB.setOnClickListener {
             navigateToAddReminder()
+        }
+
+        if (!foregroundAndBackgroundLocationPermissionApproved()) {
+            requestForegroundAndBackgroundLocationPermissions()
         }
     }
 

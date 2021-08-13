@@ -107,7 +107,6 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     override fun onMapReady(googleMap: GoogleMap) {
         map = googleMap
         checkPermissionsAndStartGeofencing()
-        getDeviceLocation()
 
         setPoiClick(map)
         setMapStyle(map)
@@ -161,6 +160,7 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
         locationSettingsResponseTask.addOnSuccessListener {
             map.isMyLocationEnabled = true
+            getDeviceLocation()
         }
     }
 
@@ -246,7 +246,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private fun setMapLongClick(map: GoogleMap) {
         map.setOnMapLongClickListener { latLng ->
             map.clear()
-            poi = PointOfInterest(latLng, getString(R.string.dropped_pin), getString(R.string.dropped_pin))
+            poi = PointOfInterest(
+                latLng,
+                getString(R.string.dropped_pin),
+                getString(R.string.dropped_pin)
+            )
             map.addMarker(
                 MarkerOptions()
                     .position(latLng)

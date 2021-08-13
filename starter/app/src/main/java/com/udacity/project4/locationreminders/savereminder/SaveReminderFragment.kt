@@ -113,6 +113,7 @@ class SaveReminderFragment : BaseFragment() {
             geofencingClient.addGeofences(geofencingRequest, geofencePendingIntent)
                 .addOnCompleteListener {
                     _viewModel.saveReminder(reminder)
+                    requireActivity().onBackPressed()
                 }
         } else {
             Snackbar.make(
@@ -130,4 +131,4 @@ class SaveReminderFragment : BaseFragment() {
     }
 }
 
-private const val GEOFENCE_RADIUS_IN_METERS = 20f
+private const val GEOFENCE_RADIUS_IN_METERS = 200f
