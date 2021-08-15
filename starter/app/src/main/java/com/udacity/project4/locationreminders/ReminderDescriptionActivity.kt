@@ -38,7 +38,7 @@ class ReminderDescriptionActivity : AppCompatActivity() {
                 EXTRA_ReminderDataItem
             ) as ReminderDataItem
 
-            binding.reminderDataItem = reminderDataItem
+            binding.reminder = reminderDataItem
             binding.executePendingBindings()
         }
     }

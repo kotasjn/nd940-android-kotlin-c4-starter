@@ -4,9 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <data>
-        <!--Data item that holds the reminder details-->
         <variable
-            name="reminderDataItem"
+            name="reminder"
             type="com.udacity.project4.locationreminders.reminderslist.ReminderDataItem" />
     </data>
 
@@ -22,7 +21,7 @@
             android:id="@+id/reminder_title"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:text="@{reminderDataItem.title}"
+            android:text="@{reminder.title}"
             android:textColor="@android:color/black"
             android:textSize="24sp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -35,7 +34,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:text="@{reminderDataItem.description}"
+            android:text="@{reminder.description}"
             android:textColor="@android:color/darker_gray"
             android:textSize="16sp"
             app:layout_constraintEnd_toEndOf="parent"
@@ -60,7 +59,7 @@
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginLeft="16dp"
-            android:text='@{reminderDataItem.location}'
+            android:text='@{reminder.location}'
             android:textColor="@android:color/darker_gray"
             android:textSize="16sp"
             app:layout_constraintBaseline_toBaselineOf="@+id/location_label"
@@ -91,12 +90,12 @@
             app:layout_constraintTop_toBottomOf="@+id/lat_label" />
 
         <TextView
-            android:id="@+id/lat_info"
+            android:id="@+id/reminder_latitude"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginLeft="16dp"
-            android:text="@{String.valueOf(reminderDataItem.latitude)}"
+            android:text="@{String.valueOf(reminder.latitude)}"
             android:textColor="@android:color/darker_gray"
             android:textSize="16sp"
             app:layout_constraintBaseline_toBaselineOf="@+id/lat_label"
@@ -105,12 +104,12 @@
             tools:text="- 00.000000" />
 
         <TextView
-            android:id="@+id/lng_info"
+            android:id="@+id/reminder_longitude"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
             android:layout_marginLeft="16dp"
-            android:text="@{String.valueOf(reminderDataItem.longitude)}"
+            android:text="@{String.valueOf(reminder.longitude)}"
             android:textColor="@android:color/darker_gray"
             android:textSize="16sp"
             app:layout_constraintBaseline_toBaselineOf="@+id/lng_label"
