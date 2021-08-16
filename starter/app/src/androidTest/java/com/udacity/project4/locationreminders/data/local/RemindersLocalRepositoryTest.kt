@@ -101,6 +101,17 @@ class RemindersLocalRepositoryTest {
     }
 
     @Test
+    fun getNonExistingReminder() = runBlocking {
+        // WHEN - Get the reminder by id from the database
+        val reminderResult = repository.getReminder(reminder.id)
+
+        // THEN - The loaded reminder contains the expected values
+        reminderResult as Result.Error
+        assertThat(reminderResult.message, `is`("Reminder not found!"))
+    }
+
+
+    @Test
     fun getReminders() = runBlocking {
         // GIVEN - save a reminder
         reminderList.forEach {

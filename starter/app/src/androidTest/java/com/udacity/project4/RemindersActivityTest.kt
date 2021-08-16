@@ -32,6 +32,7 @@ import org.koin.dsl.module
 import org.koin.test.AutoCloseKoinTest
 import org.koin.test.get
 
+
 @RunWith(AndroidJUnit4::class)
 @LargeTest
 //END TO END test to black box test the app
@@ -39,6 +40,7 @@ class RemindersActivityTest :
     AutoCloseKoinTest() {// Extended Koin Test - embed autoclose @after method to close Koin after every test
 
     private lateinit var repository: ReminderDataSource
+
     private lateinit var appContext: Application
 
     private lateinit var viewModel: SaveReminderViewModel
@@ -54,18 +56,8 @@ class RemindersActivityTest :
         stopKoin()//stop the original app koin
         appContext = getApplicationContext()
         val myModule = module {
-            viewModel {
-                RemindersListViewModel(
-                    appContext,
-                    get() as ReminderDataSource
-                )
-            }
-            single {
-                SaveReminderViewModel(
-                    appContext,
-                    get() as ReminderDataSource
-                )
-            }
+            viewModel { RemindersListViewModel(appContext, get() as ReminderDataSource) }
+            viewModel { SaveReminderViewModel(appContext, get() as ReminderDataSource) }
             single { RemindersLocalRepository(get()) as ReminderDataSource }
             single { LocalDB.createRemindersDao(appContext) }
         }
@@ -76,6 +68,7 @@ class RemindersActivityTest :
         //Get our real repository
         repository = get()
         viewModel = get()
+        viewModel.locationEnabled = true
 
         //clear the data to start fresh
         runBlocking {
@@ -103,7 +96,43 @@ class RemindersActivityTest :
     }
 
     @Test
-    fun createReminder() = runBlocking {
+    fun createReminderNoTitle() {
+        viewModel.reminderSelectedLocationStr.postValue("TEST_LOCATION")
+        viewModel.latitude.postValue(50.0)
+        viewModel.longitude.postValue(15.0)
+
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+        dataBindingIdlingResource.monitorActivity(activityScenario)
+
+        onView(withId(R.id.addReminderFAB)).perform(click())
+
+        onView(withId(R.id.saveReminder)).perform(click())
+
+        onView(withId(com.google.android.material.R.id.snackbar_text))
+            .check(matches(withText(R.string.err_enter_title)))
+
+        activityScenario.close()
+    }
+
+    @Test
+    fun createReminderNoLocation() {
+        val activityScenario = ActivityScenario.launch(RemindersActivity::class.java)
+        dataBindingIdlingResource.monitorActivity(activityScenario)
+
+        onView(withId(R.id.addReminderFAB)).perform(click())
+
+        onView(withId(R.id.reminderTitle)).perform(replaceText("TEST_TITLE"))
+
+        onView(withId(R.id.saveReminder)).perform(click())
+
+        onView(withId(com.google.android.material.R.id.snackbar_text))
+            .check(matches(withText(R.string.err_select_location)))
+
+        activityScenario.close()
+    }
+
+    @Test
+    fun createReminder() {
         viewModel.reminderSelectedLocationStr.postValue("TEST_LOCATION")
         viewModel.latitude.postValue(50.0)
         viewModel.longitude.postValue(15.0)
@@ -125,5 +154,4 @@ class RemindersActivityTest :
 
         activityScenario.close()
     }
-
 }

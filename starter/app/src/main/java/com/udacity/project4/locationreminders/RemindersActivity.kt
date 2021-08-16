@@ -1,17 +1,10 @@
 package com.udacity.project4.locationreminders
 
-import android.content.Intent
-import android.content.pm.PackageManager
 import android.os.Bundle
-import android.provider.Settings
 import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.fragment.NavHostFragment
-import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
-import com.udacity.project4.utils.REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE
-import com.udacity.project4.utils.REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE
-
 
 /**
  * The RemindersActivity that holds the reminders fragments
@@ -35,36 +28,5 @@ class RemindersActivity : AppCompatActivity() {
             }
         }
         return super.onOptionsItemSelected(item)
-    }
-
-    override fun onRequestPermissionsResult(
-        requestCode: Int,
-        permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-        if (requestCode == REQUEST_FOREGROUND_AND_BACKGROUND_PERMISSION_RESULT_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_DENIED) {
-                showLocationRequiredSnackbar()
-            }
-        } else if (requestCode == REQUEST_FOREGROUND_ONLY_PERMISSIONS_REQUEST_CODE) {
-            showLocationRequiredSnackbar()
-        }
-    }
-
-    private fun showLocationRequiredSnackbar() {
-        val fragment = navFragment.childFragmentManager.fragments[0]
-        Snackbar.make(
-            fragment.requireView(),
-            getString(R.string.location_required_error),
-            Snackbar.LENGTH_INDEFINITE
-        )
-            .setAction(android.R.string.ok) {
-                val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS).apply {
-                    flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                }
-                startActivity(intent)
-            }.show()
     }
 }
