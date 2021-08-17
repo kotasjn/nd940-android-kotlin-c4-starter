@@ -62,8 +62,7 @@ fun Fragment.requestForegroundAndBackgroundLocationPermissions() {
     if (resultCode == null) {
         showLocationRequiredSnackbar()
     } else {
-        ActivityCompat.requestPermissions(
-            requireActivity(),
+        requestPermissions(
             permissionsArray,
             resultCode
         )
@@ -71,7 +70,7 @@ fun Fragment.requestForegroundAndBackgroundLocationPermissions() {
 }
 
 /*
- *  Requests ACCESS_FINE_LOCATION and (on Android 10+ (Q) ACCESS_BACKGROUND_LOCATION.
+ *  Requests ACCESS_FINE_LOCATION permission
  */
 @TargetApi(29)
 fun Fragment.requestForegroundLocationPermissions() {
@@ -80,8 +79,7 @@ fun Fragment.requestForegroundLocationPermissions() {
     val permissionsArray = arrayOf(Manifest.permission.ACCESS_FINE_LOCATION)
     val resultCode = REQUEST_FOREGROUND_LOCATION_PERMISSIONS_REQUEST_CODE
 
-    ActivityCompat.requestPermissions(
-        requireActivity(),
+    requestPermissions(
         permissionsArray,
         resultCode
     )
@@ -90,7 +88,7 @@ fun Fragment.requestForegroundLocationPermissions() {
 fun Fragment.showLocationRequiredSnackbar() {
     Snackbar.make(
         requireView(),
-        getString(R.string.location_required_error),
+        getString(R.string.permission_denied_explanation),
         Snackbar.LENGTH_INDEFINITE
     )
         .setAction(android.R.string.ok) {
@@ -103,10 +101,8 @@ fun Fragment.showLocationRequiredSnackbar() {
         }.show()
 }
 
-const val REQUEST_FOREGROUND_LOCATION_PERMISSIONS_REQUEST_CODE = 1
-const val REQUEST_FOREGROUND_AND_BACKGROUND_LOCATION_PERMISSION_RESULT_CODE = 2
-
-const val REQUEST_TURN_DEVICE_LOCATION_ON = 29
+const val REQUEST_FOREGROUND_LOCATION_PERMISSIONS_REQUEST_CODE = 34
+const val REQUEST_FOREGROUND_AND_BACKGROUND_LOCATION_PERMISSION_RESULT_CODE = 33
 
 private val runningQ = android.os.Build.VERSION.SDK_INT == android.os.Build.VERSION_CODES.Q
 private val runningROrLater = android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.R

@@ -6,6 +6,7 @@ import android.app.Activity.RESULT_OK
 import android.content.IntentSender
 import android.content.pm.PackageManager
 import android.content.res.Resources
+import android.location.Location
 import android.os.Bundle
 import android.util.Log
 import android.view.*
@@ -22,6 +23,7 @@ import com.google.android.gms.maps.GoogleMap
 import com.google.android.gms.maps.OnMapReadyCallback
 import com.google.android.gms.maps.SupportMapFragment
 import com.google.android.gms.maps.model.*
+import com.google.android.material.snackbar.Snackbar
 import com.udacity.project4.R
 import com.udacity.project4.base.BaseFragment
 import com.udacity.project4.base.NavigationCommand
@@ -32,6 +34,7 @@ import com.udacity.project4.utils.isForegroundLocationPermissionGranted
 import com.udacity.project4.utils.requestForegroundLocationPermissions
 import com.udacity.project4.utils.setDisplayHomeAsUpEnabled
 import org.koin.androidx.viewmodel.ext.android.sharedViewModel
+
 
 class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
@@ -47,11 +50,19 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     // The entry point to the Fused Location Provider.
     private lateinit var fusedLocationProviderClient: FusedLocationProviderClient
 
+    private var lastKnownLocation: Location? = null
+
     private val resolutionForResult =
         registerForActivityResult(ActivityResultContracts.StartIntentSenderForResult()) { activityResult ->
             if (activityResult.resultCode == RESULT_OK) {
-                _viewModel.locationEnabled = true
                 setCurrentLocation()
+            } else {
+                Snackbar.make(
+                    requireView(),
+                    R.string.location_required_error, Snackbar.LENGTH_INDEFINITE
+                ).setAction(android.R.string.ok) {
+                    enableMyLocation()
+                }.show()
             }
         }
 
@@ -63,6 +74,10 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 
         binding.viewModel = _viewModel
         binding.lifecycleOwner = this
+
+        savedInstanceState?.let {
+            lastKnownLocation = it.getParcelable(LAST_KNOWN_LOCATION)
+        }
 
         setHasOptionsMenu(true)
         setDisplayHomeAsUpEnabled(true)
@@ -80,6 +95,11 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         }
 
         return binding.root
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putParcelable(LAST_KNOWN_LOCATION, lastKnownLocation)
     }
 
     private fun onLocationSelected() {
@@ -134,6 +154,13 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
         if (requestCode == REQUEST_FOREGROUND_LOCATION_PERMISSIONS_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                 enableMyLocation()
+            } else {
+                Snackbar.make(
+                    requireView(),
+                    R.string.permission_denied_explanation, Snackbar.LENGTH_INDEFINITE
+                ).setAction(android.R.string.ok) {
+                    requestForegroundLocationPermissions()
+                }.show()
             }
         }
     }
@@ -145,8 +172,12 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private fun enableMyLocation() {
         if (isForegroundLocationPermissionGranted()) {
             map.isMyLocationEnabled = true
+            map.uiSettings.isMyLocationButtonEnabled = true
             checkDeviceLocationSettings()
         } else {
+            map.isMyLocationEnabled = false
+            map.uiSettings.isMyLocationButtonEnabled = false
+            lastKnownLocation = null
             requestForegroundLocationPermissions()
         }
     }
@@ -167,20 +198,18 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
                     setCurrentLocation()
                 }
             }
-            _viewModel.locationEnabled = true
         }
 
         locationSettingsResponseTask.addOnFailureListener { exception ->
             if (exception is ResolvableApiException && resolve) {
                 try {
-                    val intentSenderRequest = IntentSenderRequest.Builder(exception.resolution).build()
+                    val intentSenderRequest =
+                        IntentSenderRequest.Builder(exception.resolution).build()
                     resolutionForResult.launch(intentSenderRequest)
                 } catch (sendEx: IntentSender.SendIntentException) {
-                    _viewModel.locationEnabled = false
                     Log.e(this.javaClass.name, sendEx.toString())
                 }
             }
-            _viewModel.locationEnabled = false
         }
     }
 
@@ -188,17 +217,36 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
     private fun setCurrentLocation() {
         fusedLocationProviderClient.lastLocation
             .addOnSuccessListener { location ->
-                location?.let {
-                    map.moveCamera(
-                        CameraUpdateFactory.newLatLngZoom(
-                            LatLng(
-                                location.latitude,
-                                location.longitude
-                            ), DEFAULT_ZOOM.toFloat()
+                if (location != null) {
+                    moveCameraToLocation(
+                        LatLng(
+                            location.latitude,
+                            location.longitude
                         )
                     )
+                    lastKnownLocation = location
+                } else {
+                    lastKnownLocation.let { lastKnownLocation ->
+                        if( lastKnownLocation != null) {
+                            moveCameraToLocation(
+                                LatLng(
+                                    lastKnownLocation.latitude,
+                                    lastKnownLocation.longitude
+                                ))
+                        }
+                    }
                 }
             }
+            .addOnFailureListener { exception ->
+                exception.message?.let { Log.e(TAG, it) }
+                map.uiSettings.isMyLocationButtonEnabled = false
+            }
+    }
+
+    private fun moveCameraToLocation(latLng: LatLng) {
+        map.moveCamera(
+            CameraUpdateFactory.newLatLngZoom(latLng, DEFAULT_ZOOM.toFloat())
+        )
     }
 
     private fun setPoiClick(map: GoogleMap) {
@@ -257,3 +305,4 @@ class SelectLocationFragment : BaseFragment(), OnMapReadyCallback {
 }
 
 private const val DEFAULT_ZOOM = 15
+private const val LAST_KNOWN_LOCATION = "last_known_location"
